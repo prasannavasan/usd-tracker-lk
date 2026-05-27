@@ -24,7 +24,6 @@
       --buy:        #3ec888;
       --sell:       #f07060;
       --live:       #3ec888;
-      --spread:     rgba(100, 160, 255, 0.10);
     }
 
     body {
@@ -37,11 +36,10 @@
       padding: 0 0 60px;
     }
 
-    /* ── Header ── */
     header {
       border-bottom: 1px solid var(--border);
       padding: 32px 24px 24px;
-      max-width: 920px;
+      max-width: 940px;
       margin: 0 auto;
     }
 
@@ -70,7 +68,6 @@
       font-size: 12px;
     }
 
-    /* ── Auto-update banner ── */
     .autoupdate-bar {
       display: inline-flex;
       align-items: center;
@@ -100,14 +97,12 @@
     .au-sep { color: var(--text-faint); margin: 0 1px; }
     #au-countdown { color: var(--live); }
 
-    /* ── Main layout ── */
     main {
-      max-width: 920px;
+      max-width: 940px;
       margin: 0 auto;
       padding: 0 24px;
     }
 
-    /* ── Stat cards ── */
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -132,10 +127,9 @@
       background: var(--blue-dim);
     }
 
-    .stat-card.card-buy::before   { background: var(--buy); }
-    .stat-card.card-sell::before  { background: var(--sell); }
+    .stat-card.card-buy::before    { background: var(--buy); }
+    .stat-card.card-sell::before   { background: var(--sell); }
     .stat-card.card-spread::before { background: var(--blue); }
-    .stat-card.card-change::before { background: var(--text-dim); }
 
     .stat-label {
       font-size: 10px;
@@ -163,30 +157,6 @@
       margin-top: 4px;
     }
 
-    /* ── Legend ── */
-    .chart-legend {
-      display: flex;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-
-    .legend-dot {
-      width: 10px; height: 3px;
-      border-radius: 2px;
-    }
-
-    .legend-dot.buy  { background: var(--buy); }
-    .legend-dot.sell { background: var(--sell); }
-
-    /* ── Chart section ── */
     .chart-section {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -211,10 +181,31 @@
       color: var(--text-dim);
     }
 
+    .chart-legend {
+      display: flex;
+      gap: 18px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .legend-line {
+      width: 16px; height: 2px;
+      border-radius: 1px;
+    }
+
+    .legend-line.buy  { background: var(--buy); }
+    .legend-line.sell { background: var(--sell); }
+
     .chart-wrap {
       position: relative;
       width: 100%;
-      height: 230px;
+      height: 240px;
     }
 
     #chart-svg {
@@ -223,13 +214,12 @@
       overflow: visible;
     }
 
-    /* Tooltip */
     #tooltip {
       position: absolute;
       background: var(--surface2);
       border: 1px solid var(--blue-dim);
       border-radius: 6px;
-      padding: 8px 14px;
+      padding: 9px 14px;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.1s;
@@ -239,14 +229,13 @@
 
     #tooltip.visible { opacity: 1; }
 
-    .tt-month { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
-    .tt-row   { display: flex; justify-content: space-between; gap: 20px; font-size: 12px; margin-top: 2px; }
-    .tt-label { color: var(--text-dim); }
-    .tt-buy   { color: var(--buy); font-family: 'Playfair Display', serif; }
-    .tt-sell  { color: var(--sell); font-family: 'Playfair Display', serif; }
-    .tt-spread { font-size: 10px; color: var(--text-faint); margin-top: 4px; }
+    .tt-date   { font-size: 11px; color: var(--text-dim); margin-bottom: 5px; }
+    .tt-row    { display: flex; justify-content: space-between; gap: 22px; font-size: 12px; margin-top: 2px; }
+    .tt-label  { color: var(--text-dim); }
+    .tt-buy    { color: var(--buy);  font-family: 'Playfair Display', serif; }
+    .tt-sell   { color: var(--sell); font-family: 'Playfair Display', serif; }
+    .tt-spread { font-size: 10px; color: var(--text-faint); margin-top: 5px; }
 
-    /* ── Data table ── */
     .table-section {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -261,7 +250,19 @@
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+
+    .table-scroll {
+      max-height: 340px;
+      overflow-y: auto;
+    }
+
+    .table-scroll::-webkit-scrollbar { width: 4px; }
+    .table-scroll::-webkit-scrollbar-track { background: var(--surface); }
+    .table-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     table {
       width: 100%;
@@ -269,6 +270,9 @@
     }
 
     thead th {
+      position: sticky;
+      top: 0;
+      background: var(--surface);
       padding: 10px 16px;
       text-align: left;
       font-size: 10px;
@@ -277,6 +281,7 @@
       color: var(--text-faint);
       border-bottom: 1px solid var(--border);
       font-weight: 400;
+      z-index: 1;
     }
 
     thead th:not(:first-child) { text-align: right; }
@@ -284,16 +289,15 @@
     tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: var(--surface2); }
-    tbody tr.live-row { background: rgba(62, 200, 136, 0.04); }
+    tbody tr.live-row { background: rgba(62, 200, 136, 0.05); }
 
-    td { padding: 10px 16px; font-size: 12px; }
+    td { padding: 8px 16px; font-size: 12px; }
     td:not(:first-child) { text-align: right; }
 
-    .month-cell  { color: var(--text); font-weight: 500; }
-    .buy-cell    { color: var(--buy); font-variant-numeric: tabular-nums; }
+    .date-cell   { color: var(--text); font-variant-numeric: tabular-nums; }
+    .buy-cell    { color: var(--buy);  font-variant-numeric: tabular-nums; }
     .sell-cell   { color: var(--sell); font-variant-numeric: tabular-nums; }
-    .spread-cell { color: var(--text-dim); font-variant-numeric: tabular-nums; }
-    .note-cell   { color: var(--text-faint); font-size: 11px; }
+    .spread-cell { color: var(--text-dim); font-variant-numeric: tabular-nums; font-size: 11px; }
 
     .live-badge {
       display: inline-flex;
@@ -316,9 +320,8 @@
       animation: pulse 1.5s infinite;
     }
 
-    /* ── Footer ── */
     footer {
-      max-width: 920px;
+      max-width: 940px;
       margin: 32px auto 0;
       padding: 0 24px;
       color: var(--text-faint);
@@ -329,27 +332,22 @@
     footer a { color: var(--blue-dim); text-decoration: none; }
     footer a:hover { color: var(--blue); }
 
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 16px 0;
-    }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
-    /* ── Responsive ── */
     @media (max-width: 520px) {
       header, main, footer { padding-left: 16px; padding-right: 16px; }
       .stats { grid-template-columns: 1fr 1fr; }
-      td, thead th { padding: 8px 10px; }
-      .note-cell, .spread-cell { display: none; }
+      td, thead th { padding: 7px 10px; }
+      .spread-cell { display: none; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <p class="header-kicker">Sri Lanka · Commercial Banks</p>
+  <p class="header-kicker">Sri Lanka · Commercial Banks · Daily TT Rates</p>
   <h1>USD Rate Tracker <span>· LKR</span></h1>
-  <p class="header-sub">Last 13 months — May 2025 to May 2026 &nbsp;·&nbsp; Updated May 27, 2026</p>
+  <p class="header-sub" id="header-sub">Last 3 months — Mar 2026 to May 2026 &nbsp;·&nbsp; Updated May 27, 2026</p>
   <div class="autoupdate-bar">
     <span class="au-dot"></span>
     Auto-updated daily at 10:00 AM Sri Lanka time
@@ -360,16 +358,15 @@
 
 <main>
 
-  <!-- Stat cards -->
   <div class="stats">
     <div class="stat-card card-buy">
       <div class="stat-label">Buying Rate</div>
-      <div class="stat-value v-buy" id="today-buy">320.90</div>
+      <div class="stat-value v-buy" id="today-buy">321.43</div>
       <div class="stat-sub">LKR · banks pay you</div>
     </div>
     <div class="stat-card card-sell">
       <div class="stat-label">Selling Rate</div>
-      <div class="stat-value v-sell" id="today-sell">328.50</div>
+      <div class="stat-value v-sell" id="today-sell">329.03</div>
       <div class="stat-sub">LKR · banks charge you</div>
     </div>
     <div class="stat-card card-spread">
@@ -377,26 +374,25 @@
       <div class="stat-value v-spread" id="today-spread">7.60</div>
       <div class="stat-sub">LKR · bank margin</div>
     </div>
-    <div class="stat-card card-change">
-      <div class="stat-label">12-Month Change</div>
-      <div class="stat-value" id="year-change">+24.87</div>
+    <div class="stat-card">
+      <div class="stat-label">3-Month Change</div>
+      <div class="stat-value" id="period-change">+15.65</div>
       <div class="stat-sub">LKR · sell rate change</div>
     </div>
   </div>
 
-  <!-- Chart -->
   <div class="chart-section">
     <div class="chart-toolbar">
-      <span class="chart-title">USD / LKR — Buying &amp; Selling Rates</span>
+      <span class="chart-title">USD / LKR — Daily Buying &amp; Selling Rates</span>
       <div class="chart-legend">
-        <div class="legend-item"><span class="legend-dot buy"></span>Buying</div>
-        <div class="legend-item"><span class="legend-dot sell"></span>Selling</div>
+        <div class="legend-item"><span class="legend-line buy"></span>Buying</div>
+        <div class="legend-item"><span class="legend-line sell"></span>Selling</div>
       </div>
     </div>
     <div class="chart-wrap">
-      <svg id="chart-svg" viewBox="0 0 880 230" preserveAspectRatio="none"></svg>
+      <svg id="chart-svg" viewBox="0 0 900 240" preserveAspectRatio="none"></svg>
       <div id="tooltip">
-        <div class="tt-month" id="tt-month"></div>
+        <div class="tt-date" id="tt-date"></div>
         <div class="tt-row">
           <span class="tt-label">Buy</span>
           <span class="tt-buy" id="tt-buy"></span>
@@ -410,85 +406,153 @@
     </div>
   </div>
 
-  <!-- Data table -->
   <div class="table-section">
-    <div class="table-header">Monthly Average TT Rates — Source: CBSL</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Month</th>
-          <th>Buy (LKR)</th>
-          <th>Sell (LKR)</th>
-          <th>Spread</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
+    <div class="table-header">
+      <span>Daily TT Rates — Source: CBSL &amp; estimates</span>
+      <span id="row-count" style="color:var(--text-faint);font-size:10px;"></span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Buy (LKR)</th>
+            <th>Sell (LKR)</th>
+            <th>Spread</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
   </div>
 
 </main>
 
 <footer>
   <hr class="divider">
-  <p>Buying &amp; selling rates are average TT (Telegraphic Transfer) rates quoted at 9:30 AM by commercial banks in Colombo, as published by the <a href="https://www.cbsl.gov.lk/en/rates-and-indicators/exchange-rates/daily-buy-and-sell-exchange-rates" target="_blank">Central Bank of Sri Lanka</a>. Monthly figures are arithmetic averages of daily TT rates. The live rate is estimated from the interbank mid-rate via <a href="https://open.er-api.com" target="_blank">open.er-api.com</a> using a calibrated ±3.8 LKR spread; it may differ slightly from your bank's quoted rate.</p>
-  <p style="margin-top:6px;">Last updated: May 27, 2026&nbsp;·&nbsp; <a href="https://github.com/prasannavasan/usd-tracker-lk" target="_blank">View source</a></p>
+  <p>Daily buying &amp; selling rates are TT (Telegraphic Transfer) rates quoted at 9:30 AM by commercial banks in Colombo, as published by the <a href="https://www.cbsl.gov.lk/en/rates-and-indicators/exchange-rates/daily-buy-and-sell-exchange-rates" target="_blank">Central Bank of Sri Lanka</a>. Rates from May 2026 onward are estimated from the interbank mid-rate via <a href="https://open.er-api.com" target="_blank">open.er-api.com</a> using a calibrated ±3.8 LKR spread.</p>
+  <p style="margin-top:6px;">Last updated: May 27, 2026 &nbsp;·&nbsp; <a href="https://github.com/prasannavasan/usd-tracker-lk" target="_blank">View source</a></p>
 </footer>
 
 <script>
-  const DATA = [
-    { month: "May '25", buy: 295.19, sell: 303.63, note: "" },
-    { month: "Jun '25", buy: 295.77, sell: 304.12, note: "" },
-    { month: "Jul '25", buy: 297.33, sell: 305.02, note: "" },
-    { month: "Aug '25", buy: 297.68, sell: 305.25, note: "" },
-    { month: "Sep '25", buy: 298.44, sell: 305.94, note: "" },
-    { month: "Oct '25", buy: 299.40, sell: 306.89, note: "" },
-    { month: "Nov '25", buy: 302.57, sell: 310.12, note: "" },
-    { month: "Dec '25", buy: 305.41, sell: 313.00, note: "" },
-    { month: "Jan '26", buy: 305.87, sell: 313.41, note: "" },
-    { month: "Feb '26", buy: 305.64, sell: 313.16, note: "" },
-    { month: "Mar '26", buy: 308.23, sell: 315.82, note: "" },
-    { month: "Apr '26", buy: 312.96, sell: 320.55, note: "" },
-    { month: "May '26", buy: 320.9, sell: 328.5, note: "Est. May 27, 2026", live: true },
-  ];
+  const DATA = [ // DATA_START
+    { date: "2026-03-03", buy: 305.70, sell: 313.38 },
+    { date: "2026-03-04", buy: 306.22, sell: 313.92 },
+    { date: "2026-03-05", buy: 306.81, sell: 314.24 },
+    { date: "2026-03-06", buy: 307.53, sell: 315.10 },
+    { date: "2026-03-09", buy: 307.41, sell: 314.99 },
+    { date: "2026-03-10", buy: 307.62, sell: 315.19 },
+    { date: "2026-03-11", buy: 307.19, sell: 314.86 },
+    { date: "2026-03-12", buy: 307.18, sell: 314.87 },
+    { date: "2026-03-13", buy: 307.19, sell: 314.89 },
+    { date: "2026-03-16", buy: 307.52, sell: 315.14 },
+    { date: "2026-03-17", buy: 307.73, sell: 315.30 },
+    { date: "2026-03-18", buy: 307.55, sell: 315.07 },
+    { date: "2026-03-19", buy: 307.58, sell: 315.12 },
+    { date: "2026-03-20", buy: 307.82, sell: 315.36 },
+    { date: "2026-03-23", buy: 308.36, sell: 315.94 },
+    { date: "2026-03-24", buy: 310.03, sell: 317.46 },
+    { date: "2026-03-25", buy: 309.91, sell: 317.42 },
+    { date: "2026-03-26", buy: 310.32, sell: 317.81 },
+    { date: "2026-03-27", buy: 310.65, sell: 318.19 },
+    { date: "2026-03-30", buy: 310.72, sell: 318.60 },
+    { date: "2026-03-31", buy: 311.77, sell: 319.31 },
+    { date: "2026-04-02", buy: 311.76, sell: 319.29 },
+    { date: "2026-04-06", buy: 311.74, sell: 319.26 },
+    { date: "2026-04-07", buy: 311.73, sell: 319.25 },
+    { date: "2026-04-08", buy: 311.53, sell: 318.97 },
+    { date: "2026-04-09", buy: 311.62, sell: 319.09 },
+    { date: "2026-04-10", buy: 311.80, sell: 319.27 },
+    { date: "2026-04-15", buy: 311.79, sell: 319.26 },
+    { date: "2026-04-16", buy: 311.81, sell: 319.28 },
+    { date: "2026-04-17", buy: 312.23, sell: 319.74 },
+    { date: "2026-04-20", buy: 312.83, sell: 320.27 },
+    { date: "2026-04-21", buy: 312.90, sell: 320.39 },
+    { date: "2026-04-22", buy: 312.98, sell: 320.72 },
+    { date: "2026-04-23", buy: 313.62, sell: 321.09 },
+    { date: "2026-04-24", buy: 314.04, sell: 321.88 },
+    { date: "2026-04-27", buy: 314.57, sell: 322.28 },
+    { date: "2026-04-28", buy: 315.00, sell: 322.76 },
+    { date: "2026-04-29", buy: 315.55, sell: 323.26 },
+    { date: "2026-04-30", buy: 315.87, sell: 323.80 },
+    { date: "2026-05-04", buy: 315.87, sell: 323.47 },
+    { date: "2026-05-07", buy: 316.42, sell: 324.02 },
+    { date: "2026-05-08", buy: 319.26, sell: 326.86 },
+    { date: "2026-05-11", buy: 317.30, sell: 324.90 },
+    { date: "2026-05-12", buy: 318.39, sell: 325.99 },
+    { date: "2026-05-13", buy: 318.80, sell: 326.40 },
+    { date: "2026-05-14", buy: 320.49, sell: 328.09 },
+    { date: "2026-05-15", buy: 321.52, sell: 329.12 },
+    { date: "2026-05-18", buy: 325.34, sell: 332.94 },
+    { date: "2026-05-19", buy: 329.24, sell: 336.84 },
+    { date: "2026-05-20", buy: 327.00, sell: 334.60 },
+    { date: "2026-05-21", buy: 339.70, sell: 347.30 },
+    { date: "2026-05-22", buy: 341.49, sell: 349.09 },
+    { date: "2026-05-25", buy: 329.01, sell: 336.61 },
+    { date: "2026-05-26", buy: 323.30, sell: 330.90 },
+    { date: "2026-05-27", buy: 321.43, sell: 329.03 },
+  ]; // DATA_END
 
-  function fmt(n) { return n.toFixed(2); }
+  function fmt(n) { return Number(n).toFixed(2); }
+
+  function fmtDate(s) {
+    const d = new Date(s + 'T00:00:00');
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
+  }
+
+  // ── Stat cards ─────────────────────────────────────────────────────────────
+  function updateStats() {
+    const last  = DATA[DATA.length - 1];
+    const first = DATA[0];
+    const spread   = (last.sell - last.buy).toFixed(2);
+    const change   = (last.sell - first.sell).toFixed(2);
+    const sign     = change >= 0 ? '+' : '';
+
+    document.getElementById('today-buy').textContent    = fmt(last.buy);
+    document.getElementById('today-sell').textContent   = fmt(last.sell);
+    document.getElementById('today-spread').textContent = spread;
+    document.getElementById('period-change').textContent = sign + change;
+  }
 
   // ── Table ──────────────────────────────────────────────────────────────────
   function buildTable() {
     const tbody = document.getElementById('table-body');
-    tbody.innerHTML = DATA.map(d => {
+    // Show newest first
+    const rows = [...DATA].reverse();
+    tbody.innerHTML = rows.map((d, idx) => {
+      const isLive = idx === 0;
       const spread = (d.sell - d.buy).toFixed(2);
-      return `<tr class="${d.live ? 'live-row' : ''}">
-        <td class="month-cell">
-          ${d.month}
-          ${d.live ? '<span class="live-badge"><span class="live-dot"></span>LIVE</span>' : ''}
+      return `<tr class="${isLive ? 'live-row' : ''}">
+        <td class="date-cell">
+          ${fmtDate(d.date)}
+          ${isLive ? '<span class="live-badge"><span class="live-dot"></span>LIVE</span>' : ''}
         </td>
         <td class="buy-cell">${fmt(d.buy)}</td>
         <td class="sell-cell">${fmt(d.sell)}</td>
         <td class="spread-cell">${spread}</td>
-        <td class="note-cell">${d.note}</td>
       </tr>`;
     }).join('');
+    document.getElementById('row-count').textContent = `${DATA.length} days`;
   }
 
   // ── Chart ──────────────────────────────────────────────────────────────────
-  const PAD = { top: 16, right: 22, bottom: 30, left: 58 };
-  const W = 880, H = 230;
+  const PAD = { top: 14, right: 24, bottom: 38, left: 60 };
+  const W = 900, H = 240;
   const CW = W - PAD.left - PAD.right;
   const CH = H - PAD.top  - PAD.bottom;
 
   function drawChart() {
     const svg = document.getElementById('chart-svg');
+    const n   = DATA.length;
 
     const allVals = DATA.flatMap(d => [d.buy, d.sell]);
     const minV = Math.min(...allVals);
     const maxV = Math.max(...allVals);
     const range = maxV - minV;
-    const lo = minV - range * 0.08;
-    const hi = maxV + range * 0.08;
+    const lo = minV - range * 0.06;
+    const hi = maxV + range * 0.06;
 
-    const x = i => PAD.left + (i / (DATA.length - 1)) * CW;
+    const x = i => PAD.left + (i / (n - 1)) * CW;
     const y = v => PAD.top + CH - ((v - lo) / (hi - lo)) * CH;
 
     const buyPts  = DATA.map((d, i) => [x(i), y(d.buy)]);
@@ -496,20 +560,37 @@
 
     const pathStr = pts => pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
 
-    // Band between buy and sell
+    // Band path (sell → reverse buy → close)
     const bandPath = pathStr(sellPts) +
-      ' ' + buyPts.slice().reverse().map((p, i) => (i === 0 ? `L${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ') +
-      ' Z';
+      ' ' + [...buyPts].reverse().map(p => `L${p[0]},${p[1]}`).join(' ') + ' Z';
 
     // Y-axis ticks
-    const ticks = 5;
+    const ticks  = 5;
     const yTicks = Array.from({length: ticks}, (_, i) => lo + (i / (ticks - 1)) * (hi - lo));
+
+    // Month boundary labels: show "Mon 'YY" at first entry of each month
+    const monthLabels = [];
+    let lastMo = null;
+    DATA.forEach((d, i) => {
+      const mo = d.date.slice(0, 7); // "2026-03"
+      if (mo !== lastMo) {
+        const dt = new Date(d.date + 'T00:00:00');
+        monthLabels.push({
+          xi: x(i),
+          label: dt.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })
+        });
+        lastMo = mo;
+      }
+    });
+
+    // Hover hit areas — one rect per data point, each ~CW/n wide
+    const hitW = Math.max(8, CW / n);
 
     svg.innerHTML = `
       <defs>
         <linearGradient id="bandGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stop-color="#4a8cff" stop-opacity="0.12"/>
-          <stop offset="100%" stop-color="#4a8cff" stop-opacity="0.03"/>
+          <stop offset="0%"   stop-color="#4a8cff" stop-opacity="0.10"/>
+          <stop offset="100%" stop-color="#4a8cff" stop-opacity="0.02"/>
         </linearGradient>
       </defs>
 
@@ -522,70 +603,89 @@
               text-anchor="end">${t.toFixed(0)}</text>
       `).join('')}
 
-      <!-- X labels (every other month) -->
-      ${DATA.map((d, i) => i % 2 === 0 ? `
-        <text x="${x(i)}" y="${PAD.top + CH + 18}"
-              fill="#2a3458" font-size="9.5" font-family="DM Mono,monospace"
-              text-anchor="middle">${d.month}</text>
-      ` : '').join('')}
+      <!-- Month boundary tick marks + labels -->
+      ${monthLabels.map(m => `
+        <line x1="${m.xi}" y1="${PAD.top + CH}" x2="${m.xi}" y2="${PAD.top + CH + 5}"
+              stroke="#2a3458" stroke-width="1"/>
+        <text x="${m.xi}" y="${PAD.top + CH + 18}"
+              fill="#4a5888" font-size="10" font-family="DM Mono,monospace"
+              text-anchor="middle">${m.label}</text>
+      `).join('')}
 
       <!-- Spread band -->
       <path d="${bandPath}" fill="url(#bandGrad)"/>
 
       <!-- Sell line -->
       <path d="${pathStr(sellPts)}" fill="none"
-            stroke="#f07060" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"
-            stroke-dasharray=""/>
+            stroke="#f07060" stroke-width="1.8"
+            stroke-linejoin="round" stroke-linecap="round"/>
 
       <!-- Buy line -->
       <path d="${pathStr(buyPts)}" fill="none"
-            stroke="#3ec888" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            stroke="#3ec888" stroke-width="1.8"
+            stroke-linejoin="round" stroke-linecap="round"/>
 
-      <!-- Hover targets + dots -->
+      <!-- Last point highlight dots -->
+      <circle cx="${buyPts[n-1][0]}"  cy="${buyPts[n-1][1]}"  r="4"
+              fill="#3ec888" stroke="#05070f" stroke-width="1.5" pointer-events="none"/>
+      <circle cx="${sellPts[n-1][0]}" cy="${sellPts[n-1][1]}" r="4"
+              fill="#f07060" stroke="#05070f" stroke-width="1.5" pointer-events="none"/>
+
+      <!-- Invisible hover columns -->
       ${DATA.map((d, i) => `
-        <rect x="${x(i) - 14}" y="${PAD.top}" width="28" height="${CH}"
-              fill="transparent" data-i="${i}"
+        <rect x="${x(i) - hitW/2}" y="${PAD.top}" width="${hitW}" height="${CH + 4}"
+              fill="transparent"
               onmouseenter="showTip(event,${i})"
               ontouchstart="showTip(event,${i})"
               onmouseleave="hideTip()"
               style="cursor:crosshair"/>
-        <circle cx="${x(i)}" cy="${y(d.sell)}" r="${d.live ? 5 : 3}"
-                fill="${d.live ? '#f07060' : '#f07060'}"
-                stroke="#05070f" stroke-width="1.5" pointer-events="none"/>
-        <circle cx="${x(i)}" cy="${y(d.buy)}" r="${d.live ? 5 : 3}"
-                fill="${d.live ? '#3ec888' : '#3ec888'}"
-                stroke="#05070f" stroke-width="1.5" pointer-events="none"/>
       `).join('')}
+
+      <!-- Vertical hover line (drawn last so it appears on top) -->
+      <line id="hover-line" x1="0" y1="${PAD.top}" x2="0" y2="${PAD.top + CH}"
+            stroke="#2a3458" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
     `;
   }
 
+  let activeI = -1;
   function showTip(e, i) {
     const d = DATA[i];
     const spread = (d.sell - d.buy).toFixed(2);
-    document.getElementById('tt-month').textContent = d.month;
-    document.getElementById('tt-buy').textContent   = fmt(d.buy);
-    document.getElementById('tt-sell').textContent  = fmt(d.sell);
+    document.getElementById('tt-date').textContent   = fmtDate(d.date);
+    document.getElementById('tt-buy').textContent    = fmt(d.buy);
+    document.getElementById('tt-sell').textContent   = fmt(d.sell);
     document.getElementById('tt-spread').textContent = `spread: ${spread} LKR`;
 
     const tip  = document.getElementById('tooltip');
     tip.classList.add('visible');
+
+    // Move hover line
+    const n  = DATA.length;
+    const xi = PAD.left + (i / (n - 1)) * CW;
+    const hl = document.getElementById('hover-line');
+    if (hl) { hl.setAttribute('x1', xi); hl.setAttribute('x2', xi); hl.setAttribute('opacity', '1'); }
+
     const wrap = tip.parentElement;
     const rect = wrap.getBoundingClientRect();
     const cx = e.clientX ?? (e.touches?.[0]?.clientX ?? 0);
     const cy = e.clientY ?? (e.touches?.[0]?.clientY ?? 0);
     let lx = cx - rect.left + 14;
-    let ly = cy - rect.top  - 75;
-    if (lx + 170 > rect.width) lx -= 185;
+    let ly = cy - rect.top  - 80;
+    if (lx + 175 > rect.width)  lx -= 190;
     if (ly < 0) ly = 4;
     tip.style.left = lx + 'px';
     tip.style.top  = ly + 'px';
+    activeI = i;
   }
 
   function hideTip() {
     document.getElementById('tooltip').classList.remove('visible');
+    const hl = document.getElementById('hover-line');
+    if (hl) hl.setAttribute('opacity', '0');
+    activeI = -1;
   }
 
-  // ── Countdown (10:00 AM Sri Lanka = UTC+5:30) ──────────────────────────────
+  // ── Countdown ──────────────────────────────────────────────────────────────
   function updateCountdown() {
     const now = new Date();
     const slMs = now.getTime() + now.getTimezoneOffset() * 60000 + (5 * 60 + 30) * 60000;
@@ -601,7 +701,8 @@
     el.textContent = diff < 600000 ? 'updating soon' : `next update in ${h}h ${m}m`;
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────
+  // ── Init ───────────────────────────────────────────────────────────────────
+  updateStats();
   buildTable();
   drawChart();
   updateCountdown();

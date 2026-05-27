@@ -1,36 +1,27 @@
 #!/usr/bin/env python3
 """
-Fetches the daily USD/LKR mid-rate from open.er-api.com and derives commercial
-bank TT buying/selling rates using a calibrated spread from CBSL historical data.
+Fetches today's USD/LKR mid-rate and appends a new daily entry to index.html.
+Entries older than 90 days are dropped automatically (rolling 3-month window).
 
-Spread calibration (CBSL TT data, recent months):
-  sell - buy ≈ 7.6 LKR consistently → half-spread = 3.8 LKR
-  buy  = mid - 3.8
-  sell = mid + 3.8
-
-CBSL publishes TT rates at 9:30 AM Sri Lanka time. This script runs at 10:00 AM
-SL time (4:30 AM UTC) so the latest rates are captured.
+Data between DATA_START and DATA_END markers is fully replaced each run.
 """
 
 import re
 import sys
 import json
 import urllib.request
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 
 # ── Time ──────────────────────────────────────────────────────────────────────
 
-SL_TZ = timezone(timedelta(hours=5, minutes=30))
-now   = datetime.now(SL_TZ)
-
-month_label  = now.strftime("%b '") + now.strftime("%y")   # "May '26"
-date_str     = now.strftime(f"%b {now.day}, %Y")            # "May 27, 2026"
-end_month    = now.strftime("%B %Y")
-start_month  = (now - timedelta(days=365)).strftime("%B %Y")
+SL_TZ   = timezone(timedelta(hours=5, minutes=30))
+now     = datetime.now(SL_TZ)
+today   = now.date()
+date_str = now.strftime(f"%b {now.day}, %Y")   # "May 27, 2026"
 
 # ── Fetch mid-rate ────────────────────────────────────────────────────────────
 
-HALF_SPREAD = 3.80   # LKR — calibrated from CBSL TT data (recent spread ≈ 7.6)
+HALF_SPREAD = 3.80   # calibrated from CBSL TT data (sell−buy ≈ 7.6 LKR)
 
 def fetch(url):
     req = urllib.request.Request(url, headers={"User-Agent": "usd-tracker-bot/1.0"})
@@ -48,54 +39,63 @@ buy  = round(mid_lkr - HALF_SPREAD, 2)
 sell = round(mid_lkr + HALF_SPREAD, 2)
 
 if not (100 < buy < 2000 and buy < sell):
-    print(f"ERROR: rates out of sane range (buy={buy}, sell={sell}) — aborting")
+    print(f"ERROR: rates out of sane range — aborting")
     sys.exit(1)
 
-print(f"Mid {mid_lkr:.2f} | Buy {buy:.2f} | Sell {sell:.2f} | Spread {sell-buy:.2f}")
+print(f"Mid {mid_lkr:.2f} | Buy {buy:.2f} | Sell {sell:.2f}")
 
-# ── Update index.html ─────────────────────────────────────────────────────────
+# ── Parse current DATA from index.html ───────────────────────────────────────
 
 with open("index.html", "r", encoding="utf-8") as f:
     html = f.read()
 
-# Detect the current live entry's month
-live_m     = re.search(r'month:\s*"([^"]+)"[^}]*live:\s*true', html)
-live_month = live_m.group(1) if live_m else None
+block_match = re.search(
+    r'(\[ // DATA_START\n)(.*?)(\n  \]; // DATA_END)',
+    html, re.DOTALL
+)
+if not block_match:
+    print("ERROR: DATA_START/DATA_END markers not found in index.html")
+    sys.exit(1)
 
-if live_month and live_month != month_label:
-    # ── Month rollover ────────────────────────────────────────────────────────
-    # 1. Strip ', live: true' from the old live entry
-    html = re.sub(r',\s*live:\s*true', "", html, count=1)
+entries = []
+for m in re.finditer(r'date: "(\d{4}-\d{2}-\d{2})", buy: ([\d.]+), sell: ([\d.]+)', block_match.group(2)):
+    entries.append({
+        "date": m.group(1),
+        "buy":  float(m.group(2)),
+        "sell": float(m.group(3)),
+    })
 
-    # 2. Drop the oldest DATA entry (first indented line)
-    html = re.sub(
-        r'    \{ month: "[^"]+",\s+buy:\s*[\d.]+,\s+sell:\s*[\d.]+,\s+note:\s*"[^"]*" \},\n',
-        "",
-        html,
-        count=1,
-    )
+# ── Add / update today's entry ────────────────────────────────────────────────
 
-    # 3. Append new live entry before closing ];
-    new_entry = (
-        f'    {{ month: "{month_label}", buy: {buy}, sell: {sell}, '
-        f'note: "Est. {date_str}", live: true }},\n'
-    )
-    html = html.replace("  ];\n", new_entry + "  ];\n", 1)
-    print(f"Month rollover → added {month_label}")
-
+today_str = str(today)
+existing  = next((e for e in entries if e["date"] == today_str), None)
+if existing:
+    existing["buy"]  = buy
+    existing["sell"] = sell
+    print(f"Updated existing entry for {today_str}")
 else:
-    # ── Daily update: patch the live entry ───────────────────────────────────
-    def patch_live(m):
-        s = re.sub(r'buy:\s*[\d.]+',   f'buy: {buy}',             m.group(0))
-        s = re.sub(r'sell:\s*[\d.]+',  f'sell: {sell}',            s)
-        s = re.sub(r'note:\s*"[^"]*"', f'note: "Est. {date_str}"', s)
-        return s
+    entries.append({"date": today_str, "buy": buy, "sell": sell})
+    print(f"Appended new entry for {today_str}")
 
-    html = re.sub(r'\{[^}]*live:\s*true[^}]*\}', patch_live, html)
+# ── Drop entries older than 90 days ──────────────────────────────────────────
+
+cutoff  = today - timedelta(days=90)
+before  = len(entries)
+entries = [e for e in entries if date.fromisoformat(e["date"]) >= cutoff]
+entries.sort(key=lambda e: e["date"])
+dropped = before - len(entries)
+if dropped:
+    print(f"Dropped {dropped} entries older than {cutoff}")
+
+# ── Rebuild DATA block ────────────────────────────────────────────────────────
+
+lines    = [f'    {{ date: "{e["date"]}", buy: {e["buy"]:.2f}, sell: {e["sell"]:.2f} }},' for e in entries]
+new_block = "[ // DATA_START\n" + "\n".join(lines) + "\n  ]; // DATA_END"
+html = html[:block_match.start()] + new_block + html[block_match.end():]
 
 # ── Stat cards ────────────────────────────────────────────────────────────────
 
-def patch_stat(stat_id, value):
+def patch(stat_id, value):
     global html
     html = re.sub(
         rf'(id="{stat_id}"[^>]*>)[^<]*(</div>)',
@@ -103,34 +103,36 @@ def patch_stat(stat_id, value):
         html,
     )
 
-spread_val  = round(sell - buy, 2)
+last  = entries[-1]
+first = entries[0]
+spread    = round(last["sell"] - last["buy"], 2)
+change    = round(last["sell"] - first["sell"], 2)
+sign      = "+" if change >= 0 else ""
 
-# 12-month sell change: compare current sell to first sell in DATA
-sell_vals  = [float(x) for x in re.findall(r'sell:\s*([\d.]+)', html)]
-first_sell = sell_vals[0] if sell_vals else sell
-yr_change  = round(sell - first_sell, 2)
-yr_sign    = "+" if yr_change >= 0 else ""
-
-patch_stat("today-buy",    f"{buy:.2f}")
-patch_stat("today-sell",   f"{sell:.2f}")
-patch_stat("today-spread", f"{spread_val:.2f}")
-patch_stat("year-change",  f"{yr_sign}{yr_change:.2f}")
+patch("today-buy",      f'{last["buy"]:.2f}')
+patch("today-sell",     f'{last["sell"]:.2f}')
+patch("today-spread",   f'{spread:.2f}')
+patch("period-change",  f'{sign}{change:.2f}')
 
 # ── Date strings ──────────────────────────────────────────────────────────────
 
-html = re.sub(
-    r"Last 13 months[^<]+",
-    f"Last 13 months — {start_month} to {end_month} &nbsp;·&nbsp; Updated {date_str}",
-    html,
-)
+first_dt = datetime.strptime(entries[0]["date"],  "%Y-%m-%d")
+last_dt  = datetime.strptime(entries[-1]["date"], "%Y-%m-%d")
+start_mo = first_dt.strftime("%b %Y")
+end_mo   = last_dt.strftime("%B %Y")
 
 html = re.sub(
-    r"(Last updated:\s*)[\w ,]+(\s*&nbsp;|<)",
-    rf"\g<1>{date_str}\g<2>",
+    r'(Last 3 months[^<]+)',
+    f'Last 3 months — {start_mo} to {end_mo} &nbsp;·&nbsp; Updated {date_str}',
+    html,
+)
+html = re.sub(
+    r'(Last updated:\s*)[\w ,]+(\s*&nbsp;|<)',
+    rf'\g<1>{date_str}\g<2>',
     html,
 )
 
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html)
 
-print(f"index.html updated — buy {buy:.2f} | sell {sell:.2f} | yr-change {yr_sign}{yr_change:.2f}")
+print(f"Done — {len(entries)} entries | buy {buy:.2f} | sell {sell:.2f} | change {sign}{change:.2f}")
