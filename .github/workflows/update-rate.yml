@@ -1,0 +1,37 @@
+name: Update USD Rate
+
+on:
+  schedule:
+    - cron: '30 4 * * *'   # 10:00 AM Sri Lanka time (UTC+5:30)
+                             # CBSL publishes TT rates at 9:30 AM — we fetch 30 min later
+  workflow_dispatch:         # Allow manual trigger from GitHub UI
+
+jobs:
+  update-rate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch rate and update index.html
+        run: python scripts/update_rate.py
+
+      - name: Commit and push if rate changed
+        run: |
+          git config user.name  "usd-rate-bot"
+          git config user.email "actions@github.com"
+          if git diff --quiet; then
+            echo "No change in rate — nothing to commit"
+          else
+            git add index.html
+            git commit -m "rate: USD/LKR update $(date -u '+%Y-%m-%d')"
+            git push
+          fi

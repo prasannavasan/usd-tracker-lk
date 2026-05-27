@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USD Rate Tracker · Sri Lanka</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #05070f;
+      --surface:    #090c18;
+      --surface2:   #0f1424;
+      --border:     #1a2038;
+      --blue:       #4a8cff;
+      --blue-light: #7eb0ff;
+      --blue-dim:   #2a5ccc;
+      --text:       #d0d8f0;
+      --text-dim:   #6878a8;
+      --text-faint: #2a3458;
+      --buy:        #3ec888;
+      --sell:       #f07060;
+      --live:       #3ec888;
+      --spread:     rgba(100, 160, 255, 0.10);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 32px 24px 24px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .header-kicker {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--blue-dim);
+      margin-bottom: 8px;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 5vw, 36px);
+      font-weight: 700;
+      color: var(--blue-light);
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+
+    header h1 span { color: var(--text-dim); font-weight: 400; }
+
+    .header-sub {
+      margin-top: 8px;
+      color: var(--text-dim);
+      font-size: 12px;
+    }
+
+    /* ── Auto-update banner ── */
+    .autoupdate-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 14px;
+      font-size: 11px;
+      color: var(--text-dim);
+      background: rgba(62, 200, 136, 0.06);
+      border: 1px solid rgba(62, 200, 136, 0.20);
+      border-radius: 20px;
+      padding: 5px 13px 5px 10px;
+    }
+
+    .au-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--live);
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.25; }
+    }
+
+    .au-sep { color: var(--text-faint); margin: 0 1px; }
+    #au-countdown { color: var(--live); }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Stat cards ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin: 28px 0 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--blue-dim);
+    }
+
+    .stat-card.card-buy::before   { background: var(--buy); }
+    .stat-card.card-sell::before  { background: var(--sell); }
+    .stat-card.card-spread::before { background: var(--blue); }
+    .stat-card.card-change::before { background: var(--text-dim); }
+
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(18px, 3.5vw, 26px);
+      font-weight: 600;
+      color: var(--blue-light);
+      line-height: 1;
+    }
+
+    .stat-value.v-buy    { color: var(--buy); }
+    .stat-value.v-sell   { color: var(--sell); }
+    .stat-value.v-spread { color: var(--blue); }
+
+    .stat-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* ── Legend ── */
+    .chart-legend {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .legend-dot {
+      width: 10px; height: 3px;
+      border-radius: 2px;
+    }
+
+    .legend-dot.buy  { background: var(--buy); }
+    .legend-dot.sell { background: var(--sell); }
+
+    /* ── Chart section ── */
+    .chart-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 20px 12px;
+      margin-bottom: 24px;
+    }
+
+    .chart-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .chart-title {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 230px;
+    }
+
+    #chart-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* Tooltip */
+    #tooltip {
+      position: absolute;
+      background: var(--surface2);
+      border: 1px solid var(--blue-dim);
+      border-radius: 6px;
+      padding: 8px 14px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+      z-index: 10;
+      white-space: nowrap;
+    }
+
+    #tooltip.visible { opacity: 1; }
+
+    .tt-month { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+    .tt-row   { display: flex; justify-content: space-between; gap: 20px; font-size: 12px; margin-top: 2px; }
+    .tt-label { color: var(--text-dim); }
+    .tt-buy   { color: var(--buy); font-family: 'Playfair Display', serif; }
+    .tt-sell  { color: var(--sell); font-family: 'Playfair Display', serif; }
+    .tt-spread { font-size: 10px; color: var(--text-faint); margin-top: 4px; }
+
+    /* ── Data table ── */
+    .table-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .table-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      border-bottom: 1px solid var(--border);
+      font-weight: 400;
+    }
+
+    thead th:not(:first-child) { text-align: right; }
+
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    tbody tr.live-row { background: rgba(62, 200, 136, 0.04); }
+
+    td { padding: 10px 16px; font-size: 12px; }
+    td:not(:first-child) { text-align: right; }
+
+    .month-cell  { color: var(--text); font-weight: 500; }
+    .buy-cell    { color: var(--buy); font-variant-numeric: tabular-nums; }
+    .sell-cell   { color: var(--sell); font-variant-numeric: tabular-nums; }
+    .spread-cell { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+    .note-cell   { color: var(--text-faint); font-size: 11px; }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--live);
+      border: 1px solid rgba(62, 200, 136, 0.3);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .live-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--live);
+      animation: pulse 1.5s infinite;
+    }
+
+    /* ── Footer ── */
+    footer {
+      max-width: 920px;
+      margin: 32px auto 0;
+      padding: 0 24px;
+      color: var(--text-faint);
+      font-size: 11px;
+      line-height: 1.8;
+    }
+
+    footer a { color: var(--blue-dim); text-decoration: none; }
+    footer a:hover { color: var(--blue); }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      header, main, footer { padding-left: 16px; padding-right: 16px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      td, thead th { padding: 8px 10px; }
+      .note-cell, .spread-cell { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-kicker">Sri Lanka · Commercial Banks</p>
+  <h1>USD Rate Tracker <span>· LKR</span></h1>
+  <p class="header-sub">Last 13 months — May 2025 to May 2026 &nbsp;·&nbsp; Updated May 27, 2026</p>
+  <div class="autoupdate-bar">
+    <span class="au-dot"></span>
+    Auto-updated daily at 10:00 AM Sri Lanka time
+    <span class="au-sep">·</span>
+    <span id="au-countdown">calculating&hellip;</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Stat cards -->
+  <div class="stats">
+    <div class="stat-card card-buy">
+      <div class="stat-label">Buying Rate</div>
+      <div class="stat-value v-buy" id="today-buy">320.90</div>
+      <div class="stat-sub">LKR · banks pay you</div>
+    </div>
+    <div class="stat-card card-sell">
+      <div class="stat-label">Selling Rate</div>
+      <div class="stat-value v-sell" id="today-sell">328.50</div>
+      <div class="stat-sub">LKR · banks charge you</div>
+    </div>
+    <div class="stat-card card-spread">
+      <div class="stat-label">Today's Spread</div>
+      <div class="stat-value v-spread" id="today-spread">7.60</div>
+      <div class="stat-sub">LKR · bank margin</div>
+    </div>
+    <div class="stat-card card-change">
+      <div class="stat-label">12-Month Change</div>
+      <div class="stat-value" id="year-change">+25.71</div>
+      <div class="stat-sub">LKR · sell rate change</div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-section">
+    <div class="chart-toolbar">
+      <span class="chart-title">USD / LKR — Buying &amp; Selling Rates</span>
+      <div class="chart-legend">
+        <div class="legend-item"><span class="legend-dot buy"></span>Buying</div>
+        <div class="legend-item"><span class="legend-dot sell"></span>Selling</div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <svg id="chart-svg" viewBox="0 0 880 230" preserveAspectRatio="none"></svg>
+      <div id="tooltip">
+        <div class="tt-month" id="tt-month"></div>
+        <div class="tt-row">
+          <span class="tt-label">Buy</span>
+          <span class="tt-buy" id="tt-buy"></span>
+        </div>
+        <div class="tt-row">
+          <span class="tt-label">Sell</span>
+          <span class="tt-sell" id="tt-sell"></span>
+        </div>
+        <div class="tt-spread" id="tt-spread"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data table -->
+  <div class="table-section">
+    <div class="table-header">Monthly Average TT Rates — Source: CBSL</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Buy (LKR)</th>
+          <th>Sell (LKR)</th>
+          <th>Spread</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer>
+  <hr class="divider">
+  <p>Buying &amp; selling rates are average TT (Telegraphic Transfer) rates quoted at 9:30 AM by commercial banks in Colombo, as published by the <a href="https://www.cbsl.gov.lk/en/rates-and-indicators/exchange-rates/daily-buy-and-sell-exchange-rates" target="_blank">Central Bank of Sri Lanka</a>. Monthly figures are arithmetic averages of daily TT rates. The live rate is estimated from the interbank mid-rate via <a href="https://open.er-api.com" target="_blank">open.er-api.com</a> using a calibrated ±3.8 LKR spread; it may differ slightly from your bank's quoted rate.</p>
+  <p style="margin-top:6px;">Last updated: May 27, 2026 &nbsp;·&nbsp; <a href="https://github.com/prasannavasan/usd-tracker-lk" target="_blank">View source</a></p>
+</footer>
+
+<script>
+  const DATA = [
+    { month: "May '25", buy: 295.19, sell: 303.63, note: "" },
+    { month: "Jun '25", buy: 295.77, sell: 304.12, note: "" },
+    { month: "Jul '25", buy: 297.33, sell: 305.02, note: "" },
+    { month: "Aug '25", buy: 297.68, sell: 305.25, note: "" },
+    { month: "Sep '25", buy: 298.44, sell: 305.94, note: "" },
+    { month: "Oct '25", buy: 299.40, sell: 306.89, note: "" },
+    { month: "Nov '25", buy: 302.57, sell: 310.12, note: "" },
+    { month: "Dec '25", buy: 305.41, sell: 313.00, note: "" },
+    { month: "Jan '26", buy: 305.87, sell: 313.41, note: "" },
+    { month: "Feb '26", buy: 305.64, sell: 313.16, note: "" },
+    { month: "Mar '26", buy: 308.23, sell: 315.82, note: "" },
+    { month: "Apr '26", buy: 312.96, sell: 320.55, note: "" },
+    { month: "May '26", buy: 320.90, sell: 328.50, note: "Est. May 27, 2026", live: true },
+  ];
+
+  function fmt(n) { return n.toFixed(2); }
+
+  // ── Table ──────────────────────────────────────────────────────────────────
+  function buildTable() {
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = DATA.map(d => {
+      const spread = (d.sell - d.buy).toFixed(2);
+      return `<tr class="${d.live ? 'live-row' : ''}">
+        <td class="month-cell">
+          ${d.month}
+          ${d.live ? '<span class="live-badge"><span class="live-dot"></span>LIVE</span>' : ''}
+        </td>
+        <td class="buy-cell">${fmt(d.buy)}</td>
+        <td class="sell-cell">${fmt(d.sell)}</td>
+        <td class="spread-cell">${spread}</td>
+        <td class="note-cell">${d.note}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Chart ──────────────────────────────────────────────────────────────────
+  const PAD = { top: 16, right: 22, bottom: 30, left: 58 };
+  const W = 880, H = 230;
+  const CW = W - PAD.left - PAD.right;
+  const CH = H - PAD.top  - PAD.bottom;
+
+  function drawChart() {
+    const svg = document.getElementById('chart-svg');
+
+    const allVals = DATA.flatMap(d => [d.buy, d.sell]);
+    const minV = Math.min(...allVals);
+    const maxV = Math.max(...allVals);
+    const range = maxV - minV;
+    const lo = minV - range * 0.08;
+    const hi = maxV + range * 0.08;
+
+    const x = i => PAD.left + (i / (DATA.length - 1)) * CW;
+    const y = v => PAD.top + CH - ((v - lo) / (hi - lo)) * CH;
+
+    const buyPts  = DATA.map((d, i) => [x(i), y(d.buy)]);
+    const sellPts = DATA.map((d, i) => [x(i), y(d.sell)]);
+
+    const pathStr = pts => pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
+
+    // Band between buy and sell
+    const bandPath = pathStr(sellPts) +
+      ' ' + buyPts.slice().reverse().map((p, i) => (i === 0 ? `L${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ') +
+      ' Z';
+
+    // Y-axis ticks
+    const ticks = 5;
+    const yTicks = Array.from({length: ticks}, (_, i) => lo + (i / (ticks - 1)) * (hi - lo));
+
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="bandGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#4a8cff" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#4a8cff" stop-opacity="0.03"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Grid + Y labels -->
+      ${yTicks.map(t => `
+        <line x1="${PAD.left}" y1="${y(t)}" x2="${PAD.left + CW}" y2="${y(t)}"
+              stroke="#1a2038" stroke-width="1"/>
+        <text x="${PAD.left - 6}" y="${y(t) + 4}"
+              fill="#2a3458" font-size="10" font-family="DM Mono,monospace"
+              text-anchor="end">${t.toFixed(0)}</text>
+      `).join('')}
+
+      <!-- X labels (every other month) -->
+      ${DATA.map((d, i) => i % 2 === 0 ? `
+        <text x="${x(i)}" y="${PAD.top + CH + 18}"
+              fill="#2a3458" font-size="9.5" font-family="DM Mono,monospace"
+              text-anchor="middle">${d.month}</text>
+      ` : '').join('')}
+
+      <!-- Spread band -->
+      <path d="${bandPath}" fill="url(#bandGrad)"/>
+
+      <!-- Sell line -->
+      <path d="${pathStr(sellPts)}" fill="none"
+            stroke="#f07060" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"
+            stroke-dasharray=""/>
+
+      <!-- Buy line -->
+      <path d="${pathStr(buyPts)}" fill="none"
+            stroke="#3ec888" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+
+      <!-- Hover targets + dots -->
+      ${DATA.map((d, i) => `
+        <rect x="${x(i) - 14}" y="${PAD.top}" width="28" height="${CH}"
+              fill="transparent" data-i="${i}"
+              onmouseenter="showTip(event,${i})"
+              ontouchstart="showTip(event,${i})"
+              onmouseleave="hideTip()"
+              style="cursor:crosshair"/>
+        <circle cx="${x(i)}" cy="${y(d.sell)}" r="${d.live ? 5 : 3}"
+                fill="${d.live ? '#f07060' : '#f07060'}"
+                stroke="#05070f" stroke-width="1.5" pointer-events="none"/>
+        <circle cx="${x(i)}" cy="${y(d.buy)}" r="${d.live ? 5 : 3}"
+                fill="${d.live ? '#3ec888' : '#3ec888'}"
+                stroke="#05070f" stroke-width="1.5" pointer-events="none"/>
+      `).join('')}
+    `;
+  }
+
+  function showTip(e, i) {
+    const d = DATA[i];
+    const spread = (d.sell - d.buy).toFixed(2);
+    document.getElementById('tt-month').textContent = d.month;
+    document.getElementById('tt-buy').textContent   = fmt(d.buy);
+    document.getElementById('tt-sell').textContent  = fmt(d.sell);
+    document.getElementById('tt-spread').textContent = `spread: ${spread} LKR`;
+
+    const tip  = document.getElementById('tooltip');
+    tip.classList.add('visible');
+    const wrap = tip.parentElement;
+    const rect = wrap.getBoundingClientRect();
+    const cx = e.clientX ?? (e.touches?.[0]?.clientX ?? 0);
+    const cy = e.clientY ?? (e.touches?.[0]?.clientY ?? 0);
+    let lx = cx - rect.left + 14;
+    let ly = cy - rect.top  - 75;
+    if (lx + 170 > rect.width) lx -= 185;
+    if (ly < 0) ly = 4;
+    tip.style.left = lx + 'px';
+    tip.style.top  = ly + 'px';
+  }
+
+  function hideTip() {
+    document.getElementById('tooltip').classList.remove('visible');
+  }
+
+  // ── Countdown (10:00 AM Sri Lanka = UTC+5:30) ──────────────────────────────
+  function updateCountdown() {
+    const now = new Date();
+    const slMs = now.getTime() + now.getTimezoneOffset() * 60000 + (5 * 60 + 30) * 60000;
+    const slNow = new Date(slMs);
+    const next  = new Date(slNow);
+    next.setHours(10, 0, 0, 0);
+    if (slNow.getHours() >= 10) next.setDate(next.getDate() + 1);
+    const diff = next - slNow;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const el = document.getElementById('au-countdown');
+    if (!el) return;
+    el.textContent = diff < 600000 ? 'updating soon' : `next update in ${h}h ${m}m`;
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  buildTable();
+  drawChart();
+  updateCountdown();
+  setInterval(updateCountdown, 60000);
+  window.addEventListener('resize', drawChart);
+</script>
+</body>
+</html>
