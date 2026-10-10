@@ -347,7 +347,7 @@
 <header>
   <p class="header-kicker">Sri Lanka · Commercial Banks · Daily TT Rates</p>
   <h1>USD Rate Tracker <span>· LKR</span></h1>
-  <p class="header-sub" id="header-sub">Last 3 months — Jul 2026 to October 2026 &nbsp;·&nbsp; Updated Oct 9, 2026</p>
+  <p class="header-sub" id="header-sub">Last 3 months — Jul 2026 to October 2026 &nbsp;·&nbsp; Updated Oct 10, 2026</p>
   <div class="autoupdate-bar">
     <span class="au-dot"></span>
     Auto-updated daily at 10:00 AM Sri Lanka time
@@ -361,12 +361,12 @@
   <div class="stats">
     <div class="stat-card card-buy">
       <div class="stat-label">Buying Rate</div>
-      <div class="stat-value v-buy" id="today-buy">326.70</div>
+      <div class="stat-value v-buy" id="today-buy">326.92</div>
       <div class="stat-sub">LKR · banks pay you</div>
     </div>
     <div class="stat-card card-sell">
       <div class="stat-label">Selling Rate</div>
-      <div class="stat-value v-sell" id="today-sell">334.30</div>
+      <div class="stat-value v-sell" id="today-sell">334.52</div>
       <div class="stat-sub">LKR · banks charge you</div>
     </div>
     <div class="stat-card card-spread">
@@ -376,7 +376,7 @@
     </div>
     <div class="stat-card">
       <div class="stat-label">3-Month Change</div>
-      <div class="stat-value" id="period-change">-4.95</div>
+      <div class="stat-value" id="period-change">-4.69</div>
       <div class="stat-sub">LKR · sell rate change</div>
     </div>
   </div>
@@ -431,12 +431,11 @@
 <footer>
   <hr class="divider">
   <p>Daily buying &amp; selling rates are TT (Telegraphic Transfer) rates quoted at 9:30 AM by commercial banks in Colombo, as published by the <a href="https://www.cbsl.gov.lk/en/rates-and-indicators/exchange-rates/daily-buy-and-sell-exchange-rates" target="_blank">Central Bank of Sri Lanka</a>. Rates from May 2026 onward are estimated from the interbank mid-rate via <a href="https://open.er-api.com" target="_blank">open.er-api.com</a> using a calibrated ±3.8 LKR spread.</p>
-  <p style="margin-top:6px;">Last updated: Oct 9, 2026&nbsp;·&nbsp; <a href="https://github.com/prasannavasan/usd-tracker-lk" target="_blank">View source</a></p>
+  <p style="margin-top:6px;">Last updated: Oct 10, 2026&nbsp;·&nbsp; <a href="https://github.com/prasannavasan/usd-tracker-lk" target="_blank">View source</a></p>
 </footer>
 
 <script>
   const DATA = [ // DATA_START
-    { date: "2026-07-11", buy: 331.65, sell: 339.25 },
     { date: "2026-07-12", buy: 331.61, sell: 339.21 },
     { date: "2026-07-13", buy: 331.50, sell: 339.10 },
     { date: "2026-07-14", buy: 331.75, sell: 339.35 },
@@ -527,6 +526,7 @@
     { date: "2026-10-07", buy: 326.97, sell: 334.57 },
     { date: "2026-10-08", buy: 327.16, sell: 334.76 },
     { date: "2026-10-09", buy: 326.70, sell: 334.30 },
+    { date: "2026-10-10", buy: 326.92, sell: 334.52 },
   ]; // DATA_END
 
   function fmt(n) { return Number(n).toFixed(2); }
